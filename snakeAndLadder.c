@@ -1,35 +1,56 @@
+// C Program to implement Snake and Ladder Game by Osmic
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <stdbool.h>
 
-int rollDie() {return rand() % 6 + 1; }
+int rollDie() {return rand() % 6 + 1; } // Function to roll a six-sided die
 int printBoard(int row, int column);
+int checkSnakeLadder(size_t NoofItems,int player,int position); // check if the player has step on snake or ladder
 int Start_data();
 
 
 #define MAX_NAME_LENGHT 20
 #define FINAL_POS_VALUE 100
 #define INITIAL_POSITION 1
-int noOfPlayers;
+int noOfPlayers; // global var
 
 struct PlayerData
 {
     char name[20];
     int position;
 };
-struct PlayerData *Players = NULL;
+struct SnakeLadder
+{
+    int start;
+    int dest;
+};
+
+struct SnakeLadder SLData[] = {
+        {34,23},//snake
+         {97,58}, //snake
+         {7,25},  // ladder
+         {51,84}, // ladder
+         {48,57}  // ladder
+};
+
+
+
+
+struct PlayerData *Players = NULL; // We can allocate the memory later
 
 int main(void)
 {
-    char ch;
+    char ch; // used to identify newline character
     int position;
     int row = 10;
     int column = 10;
-    int end = false;
+    int temp; // temp position to check if he/she in the snake or ladder
+    int end = false; // flag for ending the infinite while loop
+    size_t NoofItems = sizeof(SLData) / sizeof(SLData[0]);
 
 
-    srand(time(NULL));
+    srand(time(NULL)); // setting seed
 
     if (Start_data() != 0){
         return 1; // exit the porgram
@@ -40,10 +61,12 @@ int main(void)
             if (getchar() == '\n'){
                 position = rollDie();
                 printf("\n %s : Dice:  %d\n", Players[i].name, position);
-                Players[i].position = Players[i].position + position;
+                temp = Players[i].position + position;
+                Players[i].position = checkSnakeLadder(NoofItems,i,temp);
+
                 printBoard(row, column);
 
-                if (Players[i].position >= FINAL_POS_VALUE){ // Check for the winner
+                if (Players[i].position >= FINAL_POS_VALUE){ // Checks for the winner
                     printf("Winner is : %s", Players[i].name);
                     end = true;
                     break;
@@ -56,12 +79,26 @@ int main(void)
     return 0;
 }
 
+int checkSnakeLadder(size_t NoofItems,int player,int position){
+    for (size_t i = 0; i< NoofItems; ++i){
+        if (position == SLData[i].start){
+            position = SLData[i].dest;
+            printf("\nYou position changes from %d: %d",SLData[i].start, SLData[i].dest);
+            return position;
+        }
+    }
+    return position;
+}
 
 
 int Start_data()
 {
     printf("How many players wants to play: ");
-    scanf(" %d", &noOfPlayers);
+    if (scanf(" %d", &noOfPlayers) != 1 || noOfPlayers <= 0){
+        fprintf(stderr, "Invalid Number of Player\n");
+        return 1;
+    }
+
     printf("\n No of players: %d\n", noOfPlayers);
     // Allocate the memory for no. of players elements of type struct PlayerData
     Players = (struct PlayerData *)malloc(noOfPlayers * sizeof(struct PlayerData));
@@ -77,7 +114,6 @@ int Start_data()
         Players[i].position = INITIAL_POSITION;
     }
     return 0;
-
 }
 
 
